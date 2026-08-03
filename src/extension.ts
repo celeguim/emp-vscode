@@ -1,5 +1,7 @@
 import * as vscode from "vscode";
 import { Catalog } from "./catalog/Catalog";
+import { ApplicationBuilder } from "./catalog/builder/ApplicationBuilder";
+import { ApplicationWriter } from "./catalog/writer/ApplicationWriter";
 
 export function activate(context: vscode.ExtensionContext) {
 
@@ -48,6 +50,30 @@ export function activate(context: vscode.ExtensionContext) {
             vscode.window.showInformationMessage(
                 `Environment selected: ${env}`
             );
+
+            const name = "app1";
+            const repo = "repo1";
+            const chart = "chart1";
+
+            const app = new ApplicationBuilder()
+
+                .name(name)
+
+                .environment(env)
+
+                .repoURL(repo)
+
+                .path(chart)
+
+                .build();
+
+            console.log(app);
+
+            const writer = new ApplicationWriter();
+
+            const content = writer.write(app);
+
+
 
         }
     );
