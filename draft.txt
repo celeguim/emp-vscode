@@ -1,0 +1,9 @@
+npm install -g yo generator-code
+yo --version
+yo code --help
+
+npm install
+npm run compile
+
+# prettier globally
+npm install --global prettier

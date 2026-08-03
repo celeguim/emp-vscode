@@ -1,84 +1,32 @@
 import * as vscode from "vscode";
-import { Catalog } from "./catalog/Catalog";
-import { ApplicationBuilder } from "./catalog/builder/ApplicationBuilder";
-import { ApplicationWriter } from "./catalog/writer/ApplicationWriter";
+
+import { FilesystemCatalog } from "./catalog/FilesystemCatalog";
+import { YamlWriter } from "./writer/YamlWriter";
+import { NewApplicationCommand } from "./commands/NewApplicationCommand";
 
 export function activate(context: vscode.ExtensionContext) {
+  // Descobre a raiz do workspace
+  const workspace = vscode.workspace.workspaceFolders?.[0];
 
-    const disposable = vscode.commands.registerCommand(
-        "emp.newApplication",
-        async () => {
+  if (!workspace) {
+    vscode.window.showErrorMessage("Open a workspace first.");
+    return;
+  }
 
-            const editor = vscode.window.activeTextEditor;
+  const root = workspace.uri.fsPath;
 
-            if (!editor) {
-                vscode.window.showErrorMessage("Open a file first.");
-                return;
-            }
+  // Infraestrutura
+  const catalog = new FilesystemCatalog(root);
+  const writer = new YamlWriter(root);
 
-            const folder = vscode.workspace.getWorkspaceFolder(
-                editor.document.uri
-            );
+  // Commands
+  const newApplication = new NewApplicationCommand(catalog, writer);
 
-            if (!folder) {
-                vscode.window.showErrorMessage("File is not inside a workspace.");
-                return;
-            }
-
-            const root = folder.uri.fsPath;
-
-            vscode.window.showInformationMessage(root);
-
-            // const environments = getEnvironments(root);
-
-            const catalog = new Catalog(root);
-
-            const envs = catalog.getEnvironments();
-
-            const env = await vscode.window.showQuickPick(
-                envs.map(e => e.name),
-                {
-                    title: "Environment",
-                    placeHolder: "Choose an environment"
-                }
-            );
-
-            if (!env) {
-                return;
-            }
-
-            vscode.window.showInformationMessage(
-                `Environment selected: ${env}`
-            );
-
-            const name = "app1";
-            const repo = "repo1";
-            const chart = "chart1";
-
-            const app = new ApplicationBuilder()
-
-                .name(name)
-
-                .environment(env)
-
-                .repoURL(repo)
-
-                .path(chart)
-
-                .build();
-
-            console.log(app);
-
-            const writer = new ApplicationWriter();
-
-            const content = writer.write(app);
-
-
-
-        }
-    );
-
-    context.subscriptions.push(disposable);
+  context.subscriptions.push(
+    vscode.commands.registerCommand("emp.newApplication", () =>
+      newApplication.execute(),
+    ),
+  );
 }
 
-export function deactivate() { }
+export function deactivate() {}
