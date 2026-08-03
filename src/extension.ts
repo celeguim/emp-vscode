@@ -1,7 +1,5 @@
 import * as vscode from "vscode";
-import * as fs from "fs";
-import * as path from "path";
-import { getEnvironments } from "./catalog";
+import { Catalog } from "./catalog/Catalog";
 
 export function activate(context: vscode.ExtensionContext) {
 
@@ -29,10 +27,14 @@ export function activate(context: vscode.ExtensionContext) {
 
             vscode.window.showInformationMessage(root);
 
-            const environments = getEnvironments(root);
+            // const environments = getEnvironments(root);
+
+            const catalog = new Catalog(root);
+
+            const envs = catalog.getEnvironments();
 
             const env = await vscode.window.showQuickPick(
-                environments,
+                envs.map(e => e.name),
                 {
                     title: "Environment",
                     placeHolder: "Choose an environment"
