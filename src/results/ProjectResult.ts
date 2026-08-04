@@ -7,6 +7,6 @@ export interface GeneratedObject<T = unknown> {
   object: T;
 }
 
-export interface ApplicationResult {
+export interface ProjectResult {
   objects: GeneratedObject[];
 }

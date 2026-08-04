@@ -33,10 +33,5 @@ export class ApplicationGenerator {
         },
       ],
     };
-
-    // return {
-    //   application: app,
-    //   project: project,
-    // };
   }
 }
