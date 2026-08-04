@@ -1,21 +1,27 @@
 import { Catalog } from "../catalog/Catalog";
-import { Environment } from "../models/Environment";
+import { Application } from "../models/Application";
+import { Project } from "../models/Project";
+import { ApplicationRequest } from "../requests/ApplicationRequest";
+import { ApplicationResult } from "../results/ApplicationResult";
 
 export class ApplicationGenerator {
   constructor(private readonly catalog: Catalog) {}
 
-  static create(name: string, environment: Environment) {
-    return {
-      application: {
-        name,
-        environment: environment.name,
-        repoURL: environment.repoURL,
-        path: `charts/${name}`,
-      },
+  create(request: ApplicationRequest): ApplicationResult {
+    const app: Application = {
+      name: request.name,
+      environment: request.environment.name,
+      repoURL: request.environment.repoURL,
+      path: `charts/${request.name}`,
+    };
 
-      project: {
-        name: environment.project,
-      },
+    const project: Project = {
+      name: request.environment.project,
+    };
+
+    return {
+      application: app,
+      project: project,
     };
   }
 }
