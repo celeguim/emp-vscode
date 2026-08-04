@@ -18,4 +18,12 @@ export class YamlWriter {
     const file = path.join(dir, `${project.name}.yaml`);
     fs.writeFileSync(file, YAML.stringify(project), "utf8");
   }
+
+  delete(folder: string, name: string) {
+    const file = path.join(this.root, "catalog", folder, `${name}.yaml`);
+
+    if (fs.existsSync(file)) {
+      fs.unlinkSync(file);
+    }
+  }
 }

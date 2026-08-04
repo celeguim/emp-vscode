@@ -3,6 +3,9 @@ import * as path from "path";
 
 import { Environment } from "../models/Environment";
 import { Catalog } from "./Catalog";
+import { Application } from "../models/Application";
+import { Project } from "../models/Project";
+import { parse } from "yaml";
 
 export class FilesystemCatalog implements Catalog {
   constructor(private readonly root: string) {}
@@ -11,28 +14,54 @@ export class FilesystemCatalog implements Catalog {
     return this.root;
   }
 
+  // getEnvironments(): Environment[] {
+  //   return this.list("environments").map((file) => this.loadEnvironment(file));
+  // }
+
   getEnvironments(): Environment[] {
-    const dir = path.join(this.root, "catalog", "environments");
+    return this.list("environments").map((file) =>
+      this.load<Environment>("environments", file),
+    );
+  }
+
+  getApplications(): Application[] {
+    return this.list("applications").map((file) => ({
+      name: path.basename(file, ".yaml"),
+      environment: "",
+      repoURL: "",
+      path: "",
+    }));
+  }
+
+  getProjects(): Project[] {
+    return this.list("projects").map((file) => ({
+      name: path.basename(file, ".yaml"),
+      file: path.join(this.root, "catalog", "projects", file),
+    }));
+  }
+
+  private loadEnvironment(file: string): Environment {
+    const filename = path.join(this.root, "catalog", "environments", file);
+    const text = fs.readFileSync(filename, "utf8");
+    return parse(text) as Environment;
+  }
+
+  private list(folder: string): string[] {
+    const dir = path.join(this.root, "catalog", folder);
 
     if (!fs.existsSync(dir)) {
       return [];
     }
 
-    return ["ENV"].map((f) => ({
-      name: path.basename(f, ".yaml"),
-      file: path.join(dir, f),
-      environment: "dev",
-      repoURL: "https://github.com/celeguim/gitops.git",
-      project: "default",
-    }));
+    return fs
+      .readdirSync(dir)
+      .filter((f) => f.endsWith(".yaml"))
+      .sort();
+  }
 
-    // return fs
-    //   .readdirSync(dir)
-    //   .filter((f) => f.endsWith(".yaml"))
-    //   .map((f) => ({
-    //     name: path.basename(f, ".yaml"),
-    //     file: path.join(dir, f),
-    //   }))
-    //   .sort((a, b) => a.name.localeCompare(b.name));
+  private load<T>(folder: string, file: string): T {
+    const filename = path.join(this.root, "catalog", folder, file);
+    const text = fs.readFileSync(filename, "utf8");
+    return parse(text) as T;
   }
 }

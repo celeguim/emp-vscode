@@ -20,6 +20,10 @@
       {
         "command": "emp.newProject",
         "title": "EMP: New Project"
+      },
+      {
+        "command": "emp.delete",
+        "title": "EMP: Delete"
       }
     ]
   },

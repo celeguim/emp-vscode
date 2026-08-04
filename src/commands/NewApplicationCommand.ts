@@ -23,7 +23,6 @@ export class NewApplicationCommand {
     const env = await vscode.window.showQuickPick(
       this.catalog.getEnvironments().map((e) => ({
         label: e.name,
-        description: e.file,
       })),
       {
         title: "Environment",
@@ -35,10 +34,10 @@ export class NewApplicationCommand {
       return;
     }
 
-    const environment = this.catalog
-      .getEnvironments()
-      .find((e) => e.name === env.label)!;
-    const result = ApplicationGenerator.create(name, environment);
+    // const environment = this.catalog
+    //   .getEnvironments()
+    //   .find((e) => e.name === env.label)!;
+    // const result = ApplicationGenerator.create(name, environment);
 
     const app = {
       name,

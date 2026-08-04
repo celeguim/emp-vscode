@@ -1,7 +1,8 @@
 export interface Environment {
-  repoURL: any;
-  project: any;
   name: string;
-  file: string;
-  environment: string;
+  project: string;
+  cluster: string;
+  repoURL: string;
+  namespace: string;
+  targetRevision: string;
 }
