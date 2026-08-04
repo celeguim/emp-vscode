@@ -14,12 +14,8 @@
   "contributes": {
     "commands": [
       {
-        "command": "emp.newApplication",
-        "title": "EMP: New Application"
-      },
-      {
-        "command": "emp.newProject",
-        "title": "EMP: New Project"
+        "command": "emp.new",
+        "title": "EMP: New"
       },
       {
         "command": "emp.delete",

@@ -20,8 +20,23 @@ export class ApplicationGenerator {
     };
 
     return {
-      application: app,
-      project: project,
+      objects: [
+        {
+          folder: "applications",
+          name: app.name,
+          object: app,
+        },
+        {
+          folder: "projects",
+          name: project.name,
+          object: project,
+        },
+      ],
     };
+
+    // return {
+    //   application: app,
+    //   project: project,
+    // };
   }
 }

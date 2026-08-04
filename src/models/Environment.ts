@@ -1,3 +1,5 @@
+import * as vscode from "vscode";
+
 export interface Environment {
   name: string;
   project: string;
@@ -5,4 +7,8 @@ export interface Environment {
   repoURL: string;
   namespace: string;
   targetRevision: string;
+}
+
+interface EnvironmentQuickPickItem extends vscode.QuickPickItem {
+  environment: Environment;
 }
