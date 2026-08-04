@@ -16,6 +16,10 @@
       {
         "command": "emp.newApplication",
         "title": "EMP: New Application"
+      },
+      {
+        "command": "emp.newProject",
+        "title": "EMP: New Project"
       }
     ]
   },

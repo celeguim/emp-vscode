@@ -11,4 +11,11 @@ export class YamlWriter {
     const file = path.join(dir, `${app.name}.yaml`);
     fs.writeFileSync(file, YAML.stringify(app), "utf8");
   }
+
+  writeProject(project: any) {
+    const dir = path.join(this.root, "catalog", "projects");
+    fs.mkdirSync(dir, { recursive: true });
+    const file = path.join(dir, `${project.name}.yaml`);
+    fs.writeFileSync(file, YAML.stringify(project), "utf8");
+  }
 }
