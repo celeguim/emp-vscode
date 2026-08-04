@@ -22,6 +22,8 @@ export class FilesystemCatalog implements Catalog {
       name: path.basename(f, ".yaml"),
       file: path.join(dir, f),
       environment: "dev",
+      repoURL: "https://github.com/celeguim/gitops.git",
+      project: "default",
     }));
 
     // return fs

@@ -1,6 +1,7 @@
 import * as vscode from "vscode";
 import { Catalog } from "../catalog/Catalog";
 import { YamlWriter } from "../writer/YamlWriter";
+import { ApplicationGenerator } from "../generators/ApplicationGenerator";
 
 export class NewApplicationCommand {
   constructor(
@@ -33,6 +34,11 @@ export class NewApplicationCommand {
     if (!env) {
       return;
     }
+
+    const environment = this.catalog
+      .getEnvironments()
+      .find((e) => e.name === env.label)!;
+    const result = ApplicationGenerator.create(name, environment);
 
     const app = {
       name,
