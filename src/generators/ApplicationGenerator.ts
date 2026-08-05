@@ -19,17 +19,32 @@ export class ApplicationGenerator {
       name: request.environment.project,
     };
 
+    // return {
+    //   objects: [
+    //     {
+    //       folder: "applications",
+    //       name: app.name,
+    //       object: app,
+    //     },
+    //     {
+    //       folder: "projects",
+    //       name: project.name,
+    //       object: project,
+    //     },
+    //   ],
+    // };
+
     return {
       objects: [
-        {
-          folder: "applications",
-          name: app.name,
-          object: app,
-        },
         {
           folder: "projects",
           name: project.name,
           object: project,
+        },
+        {
+          folder: "applications",
+          name: app.name,
+          object: app,
         },
       ],
     };

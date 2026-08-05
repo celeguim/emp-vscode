@@ -7,7 +7,6 @@ export interface Catalog {
   getRoot(): string;
   getEnvironments(): Environment[];
   getApplications(): Application[];
-
   getProjects(): Project[];
-  // getClusters(): Cluster[];
+  getClusters(): Cluster[];
 }

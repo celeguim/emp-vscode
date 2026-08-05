@@ -1,6 +1,7 @@
 import * as vscode from "vscode";
 import { UI } from "./UI";
 import { Environment } from "../models/Environment";
+import { Project } from "../models/Project";
 
 export class VSCodeUI implements UI {
   async askApplicationName() {
@@ -30,6 +31,14 @@ export class VSCodeUI implements UI {
       },
     );
     return environments.find((e) => e.name === selectedEnvironment);
+  }
+
+  async pickProject(projects: Project[]) {
+    const projectNames = projects.map((p) => p.name);
+    const selectedProject = await vscode.window.showQuickPick(projectNames, {
+      title: "Select Project",
+    });
+    return projects.find((p) => p.name === selectedProject);
   }
 
   info(message: string) {
