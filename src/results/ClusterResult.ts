@@ -4,6 +4,6 @@ export interface GeneratedObject<T = unknown> {
   object: T;
 }
 
-export interface ProjectResult {
+export interface ClusterResult {
   objects: GeneratedObject[];
 }

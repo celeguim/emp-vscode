@@ -5,6 +5,8 @@ export interface UI {
   askApplicationName(): Promise<string | undefined>;
   askRepository(): Promise<string | undefined>;
   askPath(): Promise<string | undefined>;
+  askClusterName(): Promise<string | undefined>;
+  askServer(): Promise<string | undefined>;
 
   pickEnvironment(
     environments: Environment[],

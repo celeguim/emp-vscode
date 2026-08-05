@@ -6,6 +6,7 @@ import { DeleteCommand } from "./commands/DeleteCommand";
 import { NewCommand } from "./commands/NewCommand";
 import { ApplicationGenerator } from "./generators/ApplicationGenerator";
 import { ProjectGenerator } from "./generators/ProjectGenerator";
+import { ClusterGenerator } from "./generators/ClusterGenerator";
 
 export function activate(context: vscode.ExtensionContext) {
   // Descobre a raiz do workspace
@@ -23,13 +24,16 @@ export function activate(context: vscode.ExtensionContext) {
   const writer = new YamlWriter(root);
   const appGenerator = new ApplicationGenerator(catalog);
   const projectGenerator = new ProjectGenerator(catalog);
+  const clusterGenerator = new ClusterGenerator();
 
   const newCommand = new NewCommand(
     catalog,
     writer,
     appGenerator,
     projectGenerator,
+    clusterGenerator,
   );
+
   const deleteCommand = new DeleteCommand(catalog, writer);
 
   context.subscriptions.push(

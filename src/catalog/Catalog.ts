@@ -1,6 +1,6 @@
 import { Environment } from "../models/Environment";
 import { Project } from "../models/Project";
-import { Cluster } from "cluster";
+import { Cluster } from "../models/Cluster";
 import { Application } from "../models/Application";
 
 export interface Catalog {

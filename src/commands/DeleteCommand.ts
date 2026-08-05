@@ -24,6 +24,10 @@ export class DeleteCommand {
       case "Project":
         await this.deleteProject();
         break;
+
+      case "Cluster":
+        await this.deleteCluster();
+        break;
     }
   }
 
@@ -83,5 +87,34 @@ export class DeleteCommand {
 
     this.writer.delete("projects", project);
     vscode.window.showInformationMessage(`${project} deleted`);
+  }
+
+  private async deleteCluster() {
+    const cluster = await vscode.window.showQuickPick(
+      this.catalog.getClusters().map((c) => c.name),
+      {
+        title: "Cluster",
+      },
+    );
+
+    if (!cluster) {
+      return;
+    }
+
+    const confirm = await vscode.window.showWarningMessage(
+      `Delete '${cluster}'?`,
+      {
+        modal: true,
+      },
+
+      "Delete",
+    );
+
+    if (confirm !== "Delete") {
+      return;
+    }
+
+    this.writer.delete("clusters", cluster);
+    vscode.window.showInformationMessage(`${cluster} deleted`);
   }
 }

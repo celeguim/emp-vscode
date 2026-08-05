@@ -1,4 +1,4 @@
-export interface Cluster {
+export interface ClusterRequest {
   name: string;
   server: string;
 }

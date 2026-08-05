@@ -22,6 +22,18 @@ export class VSCodeUI implements UI {
     });
   }
 
+  async askServer(): Promise<string | undefined> {
+    return vscode.window.showInputBox({
+      title: "Cluster URL",
+      prompt: "https://kubernetes.default.svc",
+      ignoreFocusOut: true,
+    });
+  }
+
+  askClusterName(): Promise<string | undefined> {
+    throw new Error("Method not implemented.");
+  }
+
   async pickEnvironment(environments: Environment[]) {
     const environmentNames = environments.map((e) => e.name);
     const selectedEnvironment = await vscode.window.showQuickPick(
