@@ -1,5 +1,6 @@
 import * as fs from "fs";
 import * as path from "path";
+import * as YAML from "yaml";
 
 import { Environment } from "../models/Environment";
 import { Catalog } from "./Catalog";
@@ -23,9 +24,22 @@ export class FilesystemCatalog implements Catalog {
   }
 
   getEnvironments(): Environment[] {
-    return this.list("environments").map((file) =>
-      this.load<Environment>("environments", file),
-    );
+    const dir = path.join(this.root, "catalog", "environments");
+
+    if (!fs.existsSync(dir)) {
+      return [];
+    }
+
+    return fs
+      .readdirSync(dir)
+      .filter((f) => f.endsWith(".yaml"))
+      .map((f) => {
+        const file = path.join(dir, f);
+        const env = YAML.parse(fs.readFileSync(file, "utf8")) as Environment;
+        env.file = file;
+        return env;
+      })
+      .sort((a, b) => a.name.localeCompare(b.name));
   }
 
   getApplications(): Application[] {

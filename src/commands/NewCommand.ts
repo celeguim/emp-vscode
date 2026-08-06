@@ -8,6 +8,7 @@ import { YamlWriter } from "../writer/YamlWriter";
 import * as vscode from "vscode";
 import { Project } from "../models/Project";
 import { Application } from "../models/Application";
+import { EnvironmentItem } from "../ui/EnvironmentItem";
 
 export enum ResourceKind {
   Application = "Application",
@@ -60,12 +61,6 @@ export class NewCommand {
       return;
     }
 
-    // const project: Project = {
-    //   name: request.environment.project,
-    // };
-
-    // this.writer.save("projects", project.name, project);
-
     const app: Application = {
       name: request.name,
       environment: request.environment.name,
@@ -113,17 +108,34 @@ export class NewCommand {
   }
 
   private async askEnvironment(): Promise<Environment | undefined> {
+    interface EnvironmentItem extends vscode.QuickPickItem {
+      environment: Environment;
+    }
+
     const environments = this.catalog.getEnvironments();
 
-    const selected = await vscode.window.showQuickPick(
-      environments.map((env) => item(env.name, env, env.project, env.cluster)),
-      {
-        title: "Environment",
-        ignoreFocusOut: true,
-      },
-    );
+    if (environments.length === 0) {
+      vscode.window.showWarningMessage(
+        "No environments found. Create an Environment first.",
+      );
+      return undefined;
+    }
 
-    return selected?.value;
+    const items: EnvironmentItem[] = environments.map((e) => ({
+      label: `$(server) ${e.name}`,
+      description: `${e.project} • ${e.cluster}`,
+      detail: `${e.repoURL} (${e.targetRevision})`,
+      environment: e,
+    }));
+
+    const selected = await vscode.window.showQuickPick(items, {
+      title: "Select Environment",
+      placeHolder: "Choose the target environment",
+      matchOnDescription: true,
+      matchOnDetail: true,
+    });
+
+    return selected?.environment;
   }
 
   private async newProject() {
