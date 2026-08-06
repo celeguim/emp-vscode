@@ -4,9 +4,6 @@ import { FilesystemCatalog } from "./catalog/FilesystemCatalog";
 import { YamlWriter } from "./writer/YamlWriter";
 import { DeleteCommand } from "./commands/DeleteCommand";
 import { NewCommand } from "./commands/NewCommand";
-import { ApplicationGenerator } from "./generators/ApplicationGenerator";
-import { ProjectGenerator } from "./generators/ProjectGenerator";
-import { ClusterGenerator } from "./generators/ClusterGenerator";
 
 export function activate(context: vscode.ExtensionContext) {
   // Descobre a raiz do workspace
@@ -22,17 +19,8 @@ export function activate(context: vscode.ExtensionContext) {
   // Infraestrutura
   const catalog = new FilesystemCatalog(root);
   const writer = new YamlWriter(root);
-  const appGenerator = new ApplicationGenerator(catalog);
-  const projectGenerator = new ProjectGenerator(catalog);
-  const clusterGenerator = new ClusterGenerator();
 
-  const newCommand = new NewCommand(
-    catalog,
-    writer,
-    appGenerator,
-    projectGenerator,
-    clusterGenerator,
-  );
+  const newCommand = new NewCommand(catalog, writer);
 
   const deleteCommand = new DeleteCommand(catalog, writer);
 

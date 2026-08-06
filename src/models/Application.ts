@@ -3,4 +3,5 @@ export interface Application {
   environment: string;
   repoURL: string;
   path: string;
+  project: string;
 }

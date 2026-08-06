@@ -5,8 +5,9 @@ export interface Environment {
   project: string;
   cluster: string;
   repoURL: string;
-  namespace: string;
+  namespace?: string;
   targetRevision: string;
+  file: string;
 }
 
 interface EnvironmentQuickPickItem extends vscode.QuickPickItem {

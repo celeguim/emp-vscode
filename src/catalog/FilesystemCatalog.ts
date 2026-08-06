@@ -34,6 +34,7 @@ export class FilesystemCatalog implements Catalog {
       environment: "",
       repoURL: "",
       path: "",
+      project: "",
     }));
   }
 
