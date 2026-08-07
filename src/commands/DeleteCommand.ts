@@ -90,6 +90,8 @@ export class DeleteCommand {
   }
 
   private async deleteCluster() {
+    const clusters = this.catalog.getClusters();
+
     const cluster = await vscode.window.showQuickPick(
       this.catalog.getClusters().map((c) => c.name),
       {

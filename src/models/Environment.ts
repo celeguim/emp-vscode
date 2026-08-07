@@ -1,5 +1,3 @@
-import * as vscode from "vscode";
-
 export interface Environment {
   name: string;
   project: string;

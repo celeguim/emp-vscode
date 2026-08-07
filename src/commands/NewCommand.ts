@@ -2,13 +2,10 @@ import { Catalog } from "../catalog/Catalog";
 import { Environment } from "../models/Environment";
 import { ApplicationRequest } from "../requests/ApplicationRequest";
 import { ClusterRequest } from "../requests/ClusterRequest";
-import { item } from "../ui/Items";
-import { VSCodeUI } from "../ui/VSCodeUI";
 import { YamlWriter } from "../writer/YamlWriter";
 import * as vscode from "vscode";
 import { Project } from "../models/Project";
 import { Application } from "../models/Application";
-import { EnvironmentItem } from "../ui/EnvironmentItem";
 
 export enum ResourceKind {
   Application = "Application",
@@ -189,7 +186,7 @@ export class NewCommand {
       return;
     }
 
-    const server = await VSCodeUI.prototype.askServer.call(this);
+    const server = await this.askServer(name);
 
     if (!server) {
       return;
@@ -199,5 +196,13 @@ export class NewCommand {
       name,
       server,
     };
+  }
+
+  private async askServer(item: string): Promise<string | undefined> {
+    return vscode.window.showInputBox({
+      title: "Cluster URL",
+      prompt: "https://kubernetes.default.svc",
+      ignoreFocusOut: true,
+    });
   }
 }
