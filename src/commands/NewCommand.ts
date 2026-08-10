@@ -6,6 +6,7 @@ import { YamlWriter } from "../writer/YamlWriter";
 import * as vscode from "vscode";
 import { Project } from "../models/Project";
 import { Application } from "../models/Application";
+import { Cluster } from "../models/Cluster";
 
 export enum ResourceKind {
   Application = "Application",
@@ -46,9 +47,65 @@ export class NewCommand {
         await this.newCluster();
         break;
 
+      case ResourceKind.Environment:
+        await this.newEnvironment();
+        break;
+
       default:
         vscode.window.showInformationMessage("Coming soon...");
     }
+  }
+
+  private async newEnvironment(): Promise<void> {
+    const name = await this.askName(ResourceKind.Environment);
+
+    if (!name) {
+      return;
+    }
+
+    const project = await this.askProject();
+
+    if (!project) {
+      return;
+    }
+
+    const cluster = await this.askCluster();
+
+    if (!cluster) {
+      return;
+    }
+
+    const repoURL = await this.askRepository();
+
+    if (!repoURL) {
+      return;
+    }
+
+    const targetRevision = await this.askTargetRevision();
+
+    if (!targetRevision) {
+      return;
+    }
+
+    const environment: Environment = {
+      name,
+      project: project.name,
+      cluster: cluster.name,
+      repoURL,
+      targetRevision,
+    };
+
+    const file = this.writer.save(
+      "environments",
+      environment.name,
+      environment,
+    );
+
+    await this.open(file);
+
+    vscode.window.showInformationMessage(
+      `Environment '${environment.name}' created.`,
+    );
   }
 
   private async newApplication(): Promise<void> {
@@ -204,5 +261,76 @@ export class NewCommand {
       prompt: "https://kubernetes.default.svc",
       ignoreFocusOut: true,
     });
+  }
+
+  private async askProject(): Promise<Project | undefined> {
+    const projects = this.catalog.getProjects();
+
+    if (projects.length === 0) {
+      vscode.window.showWarningMessage(
+        "No projects found. Create a Project first.",
+      );
+      return;
+    }
+
+    const selected = await vscode.window.showQuickPick(
+      projects.map((project) => ({
+        label: project.name,
+        project,
+      })),
+
+      {
+        title: "Project",
+        placeHolder: "Select a project",
+      },
+    );
+
+    return selected?.project;
+  }
+
+  private async askCluster(): Promise<Cluster | undefined> {
+    const clusters = this.catalog.getClusters();
+
+    if (clusters.length === 0) {
+      vscode.window.showWarningMessage(
+        "No clusters found. Create a Cluster first.",
+      );
+      return;
+    }
+
+    const selected = await vscode.window.showQuickPick(
+      clusters.map((cluster) => ({
+        label: cluster.name,
+        cluster,
+      })),
+
+      {
+        title: "Cluster",
+        placeHolder: "Select a cluster",
+      },
+    );
+
+    return selected?.cluster;
+  }
+
+  private async askRepository(): Promise<string | undefined> {
+    return vscode.window.showInputBox({
+      title: "Repository URL",
+      placeHolder: "https://github.com/celeguim/gitops.git",
+      ignoreFocusOut: true,
+    });
+  }
+
+  private async askTargetRevision(): Promise<string | undefined> {
+    return vscode.window.showInputBox({
+      title: "Target Revision",
+      value: "HEAD",
+      ignoreFocusOut: true,
+    });
+  }
+
+  private async open(file: string): Promise<void> {
+    const document = await vscode.workspace.openTextDocument(file);
+    await vscode.window.showTextDocument(document);
   }
 }

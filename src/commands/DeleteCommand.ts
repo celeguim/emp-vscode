@@ -28,7 +28,40 @@ export class DeleteCommand {
       case "Cluster":
         await this.deleteCluster();
         break;
+
+      case "Environment":
+        await this.deleteEnvironment();
+        break;
     }
+  }
+
+  private async deleteEnvironment() {
+    const env = await vscode.window.showQuickPick(
+      this.catalog.getEnvironments().map((e) => e.name),
+      {
+        title: "Environment",
+      },
+    );
+
+    if (!env) {
+      return;
+    }
+
+    const confirm = await vscode.window.showWarningMessage(
+      `Delete '${env}'?`,
+      {
+        modal: true,
+      },
+
+      "Delete",
+    );
+
+    if (confirm !== "Delete") {
+      return;
+    }
+
+    this.writer.delete("environments", env);
+    vscode.window.showInformationMessage(`${env} deleted`);
   }
 
   private async deleteApplication() {
