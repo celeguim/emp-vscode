@@ -7,6 +7,7 @@ import * as vscode from "vscode";
 import { Project } from "../models/Project";
 import { Application } from "../models/Application";
 import { Cluster } from "../models/Cluster";
+import { env } from "process";
 
 export enum ResourceKind {
   Application = "Application",
@@ -87,12 +88,29 @@ export class NewCommand {
       return;
     }
 
+    const syncPolicy = await this.askSyncPolicy();
+
+    if (!syncPolicy) {
+      return;
+    }
+
+    // export interface Environment {
+    //   name: string;
+    //   project: string;
+    //   cluster: string;
+    //   targetRevision: string;
+    //   namespace: string;
+    //   syncPolicy?: string;
+    //   file?: string;
+    // }
+
     const environment: Environment = {
       name,
       project: project.name,
       cluster: cluster.name,
-      repoURL,
       targetRevision,
+      namespace: "DEFAULT-NS-change",
+      syncPolicy,
     };
 
     const file = this.writer.save(
@@ -118,7 +136,7 @@ export class NewCommand {
     const app: Application = {
       name: request.name,
       environment: request.environment.name,
-      repoURL: request.environment.repoURL,
+      repoURL: request.repoUrl,
       path: `charts/${request.name}`,
       project: request.environment.project,
     };
@@ -147,9 +165,16 @@ export class NewCommand {
       return;
     }
 
+    const repoUrl = await this.askRepository();
+
+    if (!repoUrl) {
+      return;
+    }
+
     return {
       name,
       environment,
+      repoUrl,
     };
   }
 
@@ -175,10 +200,20 @@ export class NewCommand {
       return undefined;
     }
 
+    // export interface Environment {
+    //   name: string;
+    //   project: string;
+    //   cluster: string;
+    //   targetRevision: string;
+    //   namespace: string;
+    //   syncPolicy?: string;
+    //   file?: string;
+    // }
+
     const items: EnvironmentItem[] = environments.map((e) => ({
       label: `$(server) ${e.name}`,
       description: `${e.project} • ${e.cluster}`,
-      detail: `${e.repoURL} (${e.targetRevision})`,
+      detail: `${e.namespace} (${e.targetRevision})`,
       environment: e,
     }));
 
@@ -332,5 +367,26 @@ export class NewCommand {
   private async open(file: string): Promise<void> {
     const document = await vscode.workspace.openTextDocument(file);
     await vscode.window.showTextDocument(document);
+  }
+
+  private async askSyncPolicy(): Promise<string | undefined> {
+    const selected = await vscode.window.showQuickPick(
+      [
+        {
+          label: "Enabled",
+          value: "enabled",
+        },
+        {
+          label: "Disabled",
+          value: "disabled",
+        },
+      ],
+      {
+        title: "Sync Policy",
+        placeHolder: "Select sync policy",
+      },
+    );
+
+    return selected?.value;
   }
 }
