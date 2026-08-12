@@ -7,7 +7,6 @@ import * as vscode from "vscode";
 import { Project } from "../models/Project";
 import { Application } from "../models/Application";
 import { Cluster } from "../models/Cluster";
-import { env } from "process";
 
 export enum ResourceKind {
   Application = "Application",
@@ -15,6 +14,10 @@ export enum ResourceKind {
   Environment = "Environment",
   Cluster = "Cluster",
 }
+
+type SelectItem<T> = vscode.QuickPickItem & {
+  value: T;
+};
 
 export class NewCommand {
   constructor(
@@ -64,52 +67,48 @@ export class NewCommand {
       return;
     }
 
-    const project = await this.askProject();
+    const existing = this.catalog
+      .getEnvironments()
+      .find((environment) => environment.name === name);
+
+    const project = await this.askProject(existing?.project);
 
     if (!project) {
       return;
     }
 
-    const cluster = await this.askCluster();
+    const cluster = await this.askCluster(existing?.cluster);
 
     if (!cluster) {
       return;
     }
 
-    const repoURL = await this.askRepository();
+    const namespace = await this.askNamespace(existing?.namespace);
 
-    if (!repoURL) {
+    if (!namespace) {
       return;
     }
 
-    const targetRevision = await this.askTargetRevision();
+    const targetRevision = await this.askTargetRevision(
+      existing?.targetRevision,
+    );
 
     if (!targetRevision) {
       return;
     }
 
-    const syncPolicy = await this.askSyncPolicy();
+    const syncPolicy = await this.askSyncPolicy(existing?.syncPolicy);
 
     if (!syncPolicy) {
       return;
     }
 
-    // export interface Environment {
-    //   name: string;
-    //   project: string;
-    //   cluster: string;
-    //   targetRevision: string;
-    //   namespace: string;
-    //   syncPolicy?: string;
-    //   file?: string;
-    // }
-
     const environment: Environment = {
       name,
       project: project.name,
       cluster: cluster.name,
+      namespace,
       targetRevision,
-      namespace: "DEFAULT-NS-change",
       syncPolicy,
     };
 
@@ -121,9 +120,7 @@ export class NewCommand {
 
     await this.open(file);
 
-    vscode.window.showInformationMessage(
-      `Environment '${environment.name}' created.`,
-    );
+    vscode.window.showInformationMessage(`Environment '${name}' created.`);
   }
 
   private async newApplication(): Promise<void> {
@@ -142,8 +139,9 @@ export class NewCommand {
     };
 
     const file = this.writer.save("applications", app.name, app);
-    const doc = await vscode.workspace.openTextDocument(file);
-    await vscode.window.showTextDocument(doc);
+    // const doc = await vscode.workspace.openTextDocument(file);
+    // await vscode.window.showTextDocument(doc);
+    await this.open(file);
 
     vscode.window.showInformationMessage(
       `Application '${request.name}' created.`,
@@ -159,13 +157,17 @@ export class NewCommand {
       return;
     }
 
-    const environment = await this.askEnvironment();
+    const curApp = this.catalog
+      .getApplications()
+      .find((app) => app.name === name);
+
+    const environment = await this.askEnvironment(curApp?.environment);
 
     if (!environment) {
       return;
     }
 
-    const repoUrl = await this.askRepository();
+    const repoUrl = await this.askRepository(curApp?.repoURL);
 
     if (!repoUrl) {
       return;
@@ -183,10 +185,13 @@ export class NewCommand {
       title: `${item} Name`,
       prompt: `Enter ${item} name`,
       ignoreFocusOut: true,
+      value: item,
     });
   }
 
-  private async askEnvironment(): Promise<Environment | undefined> {
+  private async askEnvironment(
+    current?: string,
+  ): Promise<Environment | undefined> {
     interface EnvironmentItem extends vscode.QuickPickItem {
       environment: Environment;
     }
@@ -215,16 +220,43 @@ export class NewCommand {
       description: `${e.project} • ${e.cluster}`,
       detail: `${e.namespace} (${e.targetRevision})`,
       environment: e,
+      value: e,
     }));
 
-    const selected = await vscode.window.showQuickPick(items, {
-      title: "Select Environment",
-      placeHolder: "Choose the target environment",
-      matchOnDescription: true,
-      matchOnDetail: true,
-    });
+    // const selected = await vscode.window.showQuickPick(items, {
+    //   title: "Select Environment",
+    //   placeHolder: "Choose the target environment",
+    //   matchOnDescription: true,
+    //   matchOnDetail: true,
+    // });
 
-    return selected?.environment;
+    // return selected?.environment;
+
+    const quickPick = vscode.window.createQuickPick<(typeof items)[number]>();
+
+    quickPick.title = "Environment";
+    quickPick.placeholder = "Select Environment";
+    quickPick.items = items;
+
+    const activeItem = items.find((item) => item.environment.name === current);
+
+    if (activeItem) {
+      quickPick.activeItems = [activeItem];
+    }
+
+    return new Promise((resolve) => {
+      quickPick.onDidAccept(() => {
+        resolve(quickPick.selectedItems[0]?.environment);
+        quickPick.hide();
+      });
+
+      quickPick.onDidHide(() => {
+        resolve(undefined);
+        quickPick.dispose();
+      });
+
+      quickPick.show();
+    });
   }
 
   private async newProject() {
@@ -290,15 +322,16 @@ export class NewCommand {
     };
   }
 
-  private async askServer(item: string): Promise<string | undefined> {
+  private async askServer(current?: string): Promise<string | undefined> {
     return vscode.window.showInputBox({
       title: "Cluster URL",
       prompt: "https://kubernetes.default.svc",
       ignoreFocusOut: true,
+      value: current,
     });
   }
 
-  private async askProject(): Promise<Project | undefined> {
+  private async askProject(current?: string): Promise<Project | undefined> {
     const projects = this.catalog.getProjects();
 
     if (projects.length === 0) {
@@ -308,22 +341,40 @@ export class NewCommand {
       return;
     }
 
-    const selected = await vscode.window.showQuickPick(
-      projects.map((project) => ({
-        label: project.name,
-        project,
-      })),
+    const items: SelectItem<Project>[] = projects.map((project) => ({
+      label: project.name,
+      description: project.description,
+      value: project,
+    }));
 
-      {
-        title: "Project",
-        placeHolder: "Select a project",
-      },
-    );
+    const quickPick = vscode.window.createQuickPick<(typeof items)[number]>();
 
-    return selected?.project;
+    quickPick.title = "Project";
+    quickPick.placeholder = "Select Project";
+    quickPick.items = items;
+
+    const activeItem = items.find((item) => item.value.name === current);
+
+    if (activeItem) {
+      quickPick.activeItems = [activeItem];
+    }
+
+    return new Promise((resolve) => {
+      quickPick.onDidAccept(() => {
+        resolve(quickPick.selectedItems[0]?.value);
+        quickPick.hide();
+      });
+
+      quickPick.onDidHide(() => {
+        resolve(undefined);
+        quickPick.dispose();
+      });
+
+      quickPick.show();
+    });
   }
 
-  private async askCluster(): Promise<Cluster | undefined> {
+  private async askCluster(current?: string): Promise<Cluster | undefined> {
     const clusters = this.catalog.getClusters();
 
     if (clusters.length === 0) {
@@ -333,34 +384,54 @@ export class NewCommand {
       return;
     }
 
-    const selected = await vscode.window.showQuickPick(
-      clusters.map((cluster) => ({
-        label: cluster.name,
-        cluster,
-      })),
+    const items: SelectItem<Cluster>[] = clusters.map((cluster) => ({
+      label: cluster.name,
+      description: cluster.server,
+      value: cluster,
+    }));
 
-      {
-        title: "Cluster",
-        placeHolder: "Select a cluster",
-      },
-    );
+    const quickPick = vscode.window.createQuickPick<(typeof items)[number]>();
 
-    return selected?.cluster;
+    quickPick.title = "Cluster";
+    quickPick.placeholder = "Select Cluster";
+    quickPick.items = items;
+
+    const activeItem = items.find((item) => item.value.name === current);
+
+    if (activeItem) {
+      quickPick.activeItems = [activeItem];
+    }
+
+    return new Promise((resolve) => {
+      quickPick.onDidAccept(() => {
+        resolve(quickPick.selectedItems[0]?.value);
+        quickPick.hide();
+      });
+
+      quickPick.onDidHide(() => {
+        resolve(undefined);
+        quickPick.dispose();
+      });
+
+      quickPick.show();
+    });
   }
 
-  private async askRepository(): Promise<string | undefined> {
+  private async askRepository(current?: string): Promise<string | undefined> {
     return vscode.window.showInputBox({
       title: "Repository URL",
       placeHolder: "https://github.com/celeguim/gitops.git",
       ignoreFocusOut: true,
+      value: current,
     });
   }
 
-  private async askTargetRevision(): Promise<string | undefined> {
+  private async askTargetRevision(
+    current?: string,
+  ): Promise<string | undefined> {
     return vscode.window.showInputBox({
       title: "Target Revision",
-      value: "HEAD",
-      ignoreFocusOut: true,
+      value: current ?? "HEAD",
     });
   }
 
@@ -369,24 +440,49 @@ export class NewCommand {
     await vscode.window.showTextDocument(document);
   }
 
-  private async askSyncPolicy(): Promise<string | undefined> {
-    const selected = await vscode.window.showQuickPick(
-      [
-        {
-          label: "Enabled",
-          value: "enabled",
-        },
-        {
-          label: "Disabled",
-          value: "disabled",
-        },
-      ],
+  private async askSyncPolicy(current?: string): Promise<string | undefined> {
+    const items = [
       {
-        title: "Sync Policy",
-        placeHolder: "Select sync policy",
+        label: "Enabled",
+        value: "enabled",
       },
-    );
+      {
+        label: "Disabled",
+        value: "disabled",
+      },
+    ];
 
-    return selected?.value;
+    const quickPick = vscode.window.createQuickPick<(typeof items)[number]>();
+
+    quickPick.title = "Sync Policy";
+    quickPick.placeholder = "Select sync policy";
+    quickPick.items = items;
+
+    const activeItem = items.find((item) => item.value === current);
+
+    if (activeItem) {
+      quickPick.activeItems = [activeItem];
+    }
+
+    return new Promise((resolve) => {
+      quickPick.onDidAccept(() => {
+        resolve(quickPick.selectedItems[0]?.value);
+        quickPick.hide();
+      });
+
+      quickPick.onDidHide(() => {
+        resolve(undefined);
+        quickPick.dispose();
+      });
+
+      quickPick.show();
+    });
+  }
+
+  private async askNamespace(current?: string): Promise<string | undefined> {
+    return vscode.window.showInputBox({
+      title: "Namespace",
+      value: current,
+    });
   }
 }
