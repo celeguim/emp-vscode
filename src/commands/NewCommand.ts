@@ -185,7 +185,6 @@ export class NewCommand {
       title: `${item} Name`,
       prompt: `Enter ${item} name`,
       ignoreFocusOut: true,
-      value: item,
     });
   }
 
