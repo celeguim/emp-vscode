@@ -1,8 +1,6 @@
 import * as vscode from "vscode";
-
 import { FilesystemCatalog } from "./catalog/FilesystemCatalog";
 import { YamlWriter } from "./writer/YamlWriter";
-import { DeleteCommand } from "./commands/DeleteCommand";
 import { NewCommand } from "./commands/NewCommand";
 
 export function activate(context: vscode.ExtensionContext) {
@@ -19,16 +17,9 @@ export function activate(context: vscode.ExtensionContext) {
   const writer = new YamlWriter(root);
 
   const newCommand = new NewCommand(catalog, writer);
-  const deleteCommand = new DeleteCommand(catalog, writer);
 
   context.subscriptions.push(
     vscode.commands.registerCommand("emp.new", () => newCommand.execute()),
-  );
-
-  context.subscriptions.push(
-    vscode.commands.registerCommand("emp.delete", () =>
-      deleteCommand.execute(),
-    ),
   );
 }
 

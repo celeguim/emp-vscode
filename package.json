@@ -1,10 +1,17 @@
 {
   "name": "emp-vscode",
-  "displayName": "emp-vscode",
-  "description": "",
-  "version": "0.0.1",
+  "displayName": "EMP",
+  "description": "VS Code extension for creating and editing EMP catalog resources.",
+  "version": "0.0.5",
+  "publisher": "celeguim",
+  "license": "MIT",
+  "icon": "images/icon.png",
   "engines": {
     "vscode": "^1.125.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/celeguim/emp-vscode.git"
   },
   "categories": [
     "Other"
@@ -16,16 +23,13 @@
       {
         "command": "emp.new",
         "title": "EMP: New"
-      },
-      {
-        "command": "emp.delete",
-        "title": "EMP: Delete"
       }
     ]
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",
     "compile": "tsc -p ./",
+    "package": "vsce package",
     "watch": "tsc -watch -p ./",
     "pretest": "npm run compile && npm run lint",
     "lint": "eslint src",

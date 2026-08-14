@@ -39,12 +39,12 @@ export class NewCommand {
     );
 
     switch (type) {
-      case ResourceKind.Application:
-        await this.newApplication();
-        break;
-
       case ResourceKind.Project:
         await this.newProject();
+        break;
+
+      case ResourceKind.Application:
+        await this.newApplication();
         break;
 
       case ResourceKind.Cluster:
@@ -204,16 +204,6 @@ export class NewCommand {
       return undefined;
     }
 
-    // export interface Environment {
-    //   name: string;
-    //   project: string;
-    //   cluster: string;
-    //   targetRevision: string;
-    //   namespace: string;
-    //   syncPolicy?: string;
-    //   file?: string;
-    // }
-
     const items: EnvironmentItem[] = environments.map((e) => ({
       label: `$(server) ${e.name}`,
       description: `${e.project} • ${e.cluster}`,
@@ -221,15 +211,6 @@ export class NewCommand {
       environment: e,
       value: e,
     }));
-
-    // const selected = await vscode.window.showQuickPick(items, {
-    //   title: "Select Environment",
-    //   placeHolder: "Choose the target environment",
-    //   matchOnDescription: true,
-    //   matchOnDetail: true,
-    // });
-
-    // return selected?.environment;
 
     const quickPick = vscode.window.createQuickPick<(typeof items)[number]>();
 
@@ -259,17 +240,22 @@ export class NewCommand {
   }
 
   private async newProject() {
-    const name = await vscode.window.showInputBox({
-      title: "Project Name",
-    });
-
+    const name = await this.askName(ResourceKind.Project);
     if (!name) {
       return;
     }
 
+    const items = this.catalog.getProjects();
+    const activeItem = items.find((item) => item.name === name);
+
     const desc = await vscode.window.showInputBox({
       title: "Project Description",
+      value: activeItem?.description ?? "",
     });
+
+    if (desc === undefined) {
+      return;
+    }
 
     const project: Project = {
       name: name,
@@ -277,9 +263,7 @@ export class NewCommand {
     };
 
     const file = this.writer.save("projects", project.name, project);
-    const doc = await vscode.workspace.openTextDocument(file);
-    await vscode.window.showTextDocument(doc);
-
+    this.open(file);
     vscode.window.showInformationMessage(`${name}.yaml created`);
   }
 
@@ -296,9 +280,7 @@ export class NewCommand {
     };
 
     const file = this.writer.save("clusters", request.name, cluster);
-    const doc = await vscode.workspace.openTextDocument(file);
-    await vscode.window.showTextDocument(doc);
-
+    this.open(file);
     vscode.window.showInformationMessage(`${request.name}.yaml created`);
   }
 
@@ -311,7 +293,7 @@ export class NewCommand {
 
     const server = await this.askServer(name);
 
-    if (!server) {
+    if (server === undefined) {
       return;
     }
 
@@ -321,12 +303,15 @@ export class NewCommand {
     };
   }
 
-  private async askServer(current?: string): Promise<string | undefined> {
+  private async askServer(cluster?: string): Promise<string | undefined> {
+    const clusters = this.catalog.getClusters();
+    const current = clusters.find((item) => item.name === cluster);
+
     return vscode.window.showInputBox({
       title: "Cluster URL",
       prompt: "https://kubernetes.default.svc",
       ignoreFocusOut: true,
-      value: current,
+      value: current?.server ?? "",
     });
   }
 

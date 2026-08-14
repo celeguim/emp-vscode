@@ -7,3 +7,14 @@ npm run compile
 
 # prettier globally
 npm install --global prettier
+
+# compatibility
+node +20
+# extension build/install
+npm install
+npm install --save-dev @vscode/vsce
+# vsix
+npm run compile
+vsce package
+# install extension
+code --install-extension emp-vscode-0.0.1.vsix
