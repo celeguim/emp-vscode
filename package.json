@@ -2,7 +2,7 @@
   "name": "emp-vscode",
   "displayName": "EMP",
   "description": "VS Code extension for creating and editing EMP catalog resources.",
-  "version": "0.0.5",
+  "version": "0.0.7",
   "publisher": "celeguim",
   "license": "MIT",
   "icon": "images/icon.png",
@@ -28,7 +28,7 @@
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",
-    "compile": "tsc -p ./",
+    "compile": "node esbuild.js",
     "package": "vsce package",
     "watch": "tsc -watch -p ./",
     "pretest": "npm run compile && npm run lint",
@@ -41,6 +41,7 @@
     "@types/vscode": "^1.125.0",
     "@vscode/test-cli": "^0.0.15",
     "@vscode/test-electron": "^3.0.0",
+    "esbuild": "^0.28.2",
     "eslint": "^10.8.0",
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.61.1"
