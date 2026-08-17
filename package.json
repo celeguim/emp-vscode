@@ -2,7 +2,7 @@
   "name": "emp-vscode",
   "displayName": "EMP",
   "description": "VS Code extension for creating and editing EMP catalog resources.",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "publisher": "celeguim",
   "license": "MIT",
   "icon": "images/icon.png",

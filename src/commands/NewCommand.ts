@@ -406,7 +406,7 @@ export class NewCommand {
       title: "Repository URL",
       placeHolder: "https://github.com/celeguim/gitops.git",
       ignoreFocusOut: true,
-      value: current,
+      value: current ?? "https://github.com/celeguim/gitops.git",
     });
   }
 
